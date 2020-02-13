@@ -8,7 +8,6 @@ keywords = ["text", "streaming", "line", "line-number", "line-num"]
 categories = ["algorithms", "text-processing"]
 license = "MIT"
 repository = "https://github.com/vallentin/line-span"
-homepage = "https://github.com/vallentin/line-span"
 documentation = "https://docs.rs/line-span"
 readme = "README.md"
 exclude = [".travis.yml"]
