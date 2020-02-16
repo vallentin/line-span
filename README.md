@@ -9,6 +9,23 @@ This crate features utilities for finding the start, end, and range of lines
 from a byte index.
 Further also being able to find the next and previous line, from an arbitrary byte index.
 
+## Usage
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+line-span = "0.1"
+```
+
+## Releases
+
+Release notes are available in the repo at [CHANGELOG.md].
+
+[CHANGELOG.md]: CHANGELOG.md
+
+-----
+
 **Current Line:**
 
 - [`find_line_start`](https://docs.rs/line-span/*/line_span/fn.find_line_start.html) to find the start of the current line.
