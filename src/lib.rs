@@ -20,6 +20,14 @@
 //! - [`find_prev_line_end`](fn.find_prev_line_end.html) to find the end of the previous line.
 //! - [`find_prev_line_range`](fn.find_prev_line_range.html) to find both start and end of the previous line.
 //!
+//! **Utilities:**
+//!
+//! - [`str_to_range`] to get the range of a substring in a string.
+//! - [`str_to_range_unchecked`] unchecked version of [`str_to_range`].
+//!
+//! [`str_to_range`]: fn.str_to_range.html
+//! [`str_to_range_unchecked`]: fn.str_to_range_unchecked.html
+//!
 //! # [`LineSpan`] and [`LineSpanIter`]
 //!
 //! The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
@@ -83,6 +91,26 @@
 //!
 //! assert_eq!(next_range, 9..12);
 //! assert_eq!(&text[next_range], "baz");
+//! ```
+//!
+//! # Range of Substring in String
+//!
+//! Use [`str_to_range`] (or [`str_to_range_unchecked`]) to get the
+//! range of a substring in a string.
+//!
+//! ```
+//! # use line_span::str_to_range;
+//! let string1 = "Foo Bar Baz";
+//! let string2 = "Hello World";
+//!
+//! let substring = &string1[4..7]; // "Bar"
+//! # assert_eq!(substring, "Bar");
+//!
+//! // Returns `Some` as `substring` is a part of `string1`
+//! assert_eq!(str_to_range(string1, substring), Some(4..7));
+//!
+//! // Returns `None` as `substring` is not a part of `string2`
+//! assert_eq!(str_to_range(string2, substring), None);
 //! ```
 
 #![forbid(unsafe_code)]
@@ -406,6 +434,150 @@ pub fn find_prev_line_end(text: &str, index: usize) -> Option<usize> {
 #[inline]
 pub fn find_prev_line_range(text: &str, index: usize) -> Option<Range<usize>> {
     find_prev_line_end(text, index).map(|end| find_line_start(text, end)..end)
+}
+
+/// Get the start and end (byte index) range (`Range<usize>`), where `substring`
+/// is located in `string`.
+/// The returned range is relative to `string`.
+///
+/// Returns `Some` if `substring` is a part of `string`, otherwise `None`.
+///
+/// *For an unchecked version, check out [`str_to_range_unchecked`].*
+///
+/// [`str_to_range_unchecked`]: fn.str_to_range_unchecked.html
+///
+/// # Example
+///
+/// ```
+/// # use line_span::str_to_range;
+/// let string1 = "Foo Bar Baz";
+/// let string2 = "Hello World";
+///
+/// let substring = &string1[4..7]; // "Bar"
+/// # assert_eq!(substring, "Bar");
+///
+/// // Returns `Some` as `substring` is a part of `string1`
+/// assert_eq!(str_to_range(string1, substring), Some(4..7));
+///
+/// // Returns `None` as `substring` is not a part of `string2`
+/// assert_eq!(str_to_range(string2, substring), None);
+/// ```
+///
+/// # Example - Substring of Substring
+///
+/// Since the resulting range is relative to `string`, that implies
+/// `substring` can be a substring of a substring of a substring of ...
+/// and so on.
+///
+/// ```
+/// # use line_span::str_to_range;
+/// let s1 = "Foo Bar Baz";
+///
+/// // Substring of `s1`
+/// let s2 = &s1[4..11]; // "Bar Baz"
+///
+/// // Substring of `s1`
+/// let s3 = &s1[4..7]; // "Bar"
+///
+/// // Substring of `s2`, which is a substring of `s1`
+/// let s4 = &s2[0..3]; // "Bar"
+///
+/// // Get the range of `s2` relative to `s1`
+/// assert_eq!(str_to_range(s1, s2), Some(4..11));
+///
+/// // Get the range of `s3` relative to `s1`
+/// assert_eq!(str_to_range(s1, s3), Some(4..7));
+///
+/// // Get the range of `s4` relative to `s1`
+/// assert_eq!(str_to_range(s1, s4), Some(4..7));
+///
+/// // Get the range of `s4` relative to `s2`
+/// assert_eq!(str_to_range(s2, s4), Some(0..3));
+/// ```
+#[inline]
+pub fn str_to_range(string: &str, substring: &str) -> Option<Range<usize>> {
+    let str_start = string.as_ptr() as usize;
+    let sub_start = substring.as_ptr() as usize;
+
+    if str_start <= sub_start {
+        let start = sub_start - str_start;
+        let end = start + substring.len();
+
+        if (sub_start + substring.len()) <= (str_start + string.len()) {
+            return Some(start..end);
+        }
+    }
+
+    None
+}
+
+/// Get the start and end (byte index) range (`Range<usize>`), where `substring`
+/// is located in `string`.
+/// The returned range is relative to `string`.
+///
+/// If `substring` is not a part of `string`, it either panics or returns an
+/// invalid range.
+///
+/// *For a safe version, check out [`str_to_range`].*
+///
+/// [`str_to_range`]: fn.str_to_range.html
+///
+/// # Panics
+///
+/// Panics if `substring` is not a substring of `string`. \*
+///
+/// \* Panicking depends on where the strings are located in memory. It might
+/// not panic but instead return an invalid range.
+///
+/// # Example
+///
+/// ```
+/// # use line_span::str_to_range_unchecked;
+/// let string = "Foo Bar Baz";
+///
+/// let substring = &string[4..7]; // "Bar"
+/// # assert_eq!(substring, "Bar");
+///
+/// assert_eq!(str_to_range_unchecked(string, substring), 4..7);
+/// ```
+///
+/// # Example - Substring of Substring
+///
+/// Since the resulting range is relative to `string`, that implies
+/// `substring` can be a substring of a substring of a substring of ...
+/// and so on.
+///
+/// ```
+/// # use line_span::str_to_range_unchecked;
+/// let s1 = "Foo Bar Baz";
+///
+/// // Substring of `s1`
+/// let s2 = &s1[4..11]; // "Bar Baz"
+///
+/// // Substring of `s1`
+/// let s3 = &s1[4..7]; // "Bar"
+///
+/// // Substring of `s2`, which is a substring of `s1`
+/// let s4 = &s2[0..3]; // "Bar"
+///
+/// // Get the range of `s2` relative to `s1`
+/// assert_eq!(str_to_range_unchecked(s1, s2), 4..11);
+///
+/// // Get the range of `s3` relative to `s1`
+/// assert_eq!(str_to_range_unchecked(s1, s3), 4..7);
+///
+/// // Get the range of `s4` relative to `s1`
+/// assert_eq!(str_to_range_unchecked(s1, s4), 4..7);
+///
+/// // Get the range of `s4` relative to `s2`
+/// assert_eq!(str_to_range_unchecked(s2, s4), 0..3);
+/// ```
+#[inline]
+pub fn str_to_range_unchecked(string: &str, substring: &str) -> Range<usize> {
+    let start = (substring.as_ptr() as usize) - (string.as_ptr() as usize);
+    let end = start + substring.len();
+
+    start..end
 }
 
 /// [`LineSpan`] represents a single line, excluding `\n` and `\r\n`.

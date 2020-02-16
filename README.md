@@ -27,6 +27,14 @@ Further also being able to find the next and previous line, from an arbitrary by
 - [`find_prev_line_end`](https://docs.rs/line-span/*/line_span/fn.find_prev_line_end.html) to find the end of the previous line.
 - [`find_prev_line_range`](https://docs.rs/line-span/*/line_span/fn.find_prev_line_range.html) to find both start and end of the previous line.
 
+**Utilities:**
+
+- [`str_to_range`] to get the range of a substring in a string.
+- [`str_to_range_unchecked`] unchecked version of [`str_to_range`].
+
+[`str_to_range`]: https://docs.rs/line-span/*/line_span/fn.str_to_range.html
+[`str_to_range_unchecked`]: https://docs.rs/line-span/*/line_span/fn.str_to_range_unchecked.html
+
 # [`LineSpan`] and [`LineSpanIter`]
 
 The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
