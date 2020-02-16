@@ -122,6 +122,7 @@
 use std::fmt;
 use std::iter::FusedIterator;
 use std::ops::{Deref, Range};
+use std::str::Lines;
 
 /// Find the start (byte index) of the line, which `index` is within.
 ///
@@ -701,7 +702,7 @@ impl<'a> fmt::Display for LineSpan<'a> {
 #[allow(missing_debug_implementations)]
 pub struct LineSpanIter<'a> {
     text: &'a str,
-    index: Option<usize>,
+    iter: Lines<'a>,
 }
 
 impl<'a> LineSpanIter<'a> {
@@ -709,7 +710,7 @@ impl<'a> LineSpanIter<'a> {
     fn from(text: &'a str) -> Self {
         Self {
             text,
-            index: Some(0),
+            iter: text.lines(),
         }
     }
 }
@@ -717,11 +718,10 @@ impl<'a> LineSpanIter<'a> {
 impl<'a> Iterator for LineSpanIter<'a> {
     type Item = LineSpan<'a>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(start) = self.index {
-            let end = find_line_end(self.text, start);
-
-            self.index = find_next_line_start(self.text, end);
+        if let Some(line) = self.iter.next() {
+            let Range { start, end } = str_to_range_unchecked(self.text, line);
 
             Some(LineSpan {
                 text: self.text,
@@ -802,7 +802,17 @@ fn test_line_spans() {
 fn test_line_spans_vs_lines() {
     let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
 
-    for (span, line) in text.line_spans().zip(text.lines()) {
-        assert_eq!(span.as_str(), line);
+    let mut iter_spans = text.line_spans();
+    let mut iter_lines = text.lines();
+
+    loop {
+        let span = iter_spans.next();
+        let line = iter_lines.next();
+
+        assert_eq!(span.map(|s| s.as_str()), line);
+
+        if span.is_none() {
+            break;
+        }
     }
 }
