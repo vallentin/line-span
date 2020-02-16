@@ -465,6 +465,9 @@ impl<'a> LineSpan<'a> {
 impl<'a> Deref for LineSpan<'a> {
     type Target = str;
 
+    /// Returns [`as_str`].
+    ///
+    /// [`as_str`]: struct.LineSpan.html#method.as_str
     #[inline]
     fn deref(&self) -> &Self::Target {
         self.as_str()
@@ -472,6 +475,9 @@ impl<'a> Deref for LineSpan<'a> {
 }
 
 impl<'a> From<LineSpan<'a>> for &'a str {
+    /// Returns [`as_str`].
+    ///
+    /// [`as_str`]: struct.LineSpan.html#method.as_str
     #[inline]
     fn from(span: LineSpan<'a>) -> &'a str {
         span.as_str()
@@ -479,6 +485,9 @@ impl<'a> From<LineSpan<'a>> for &'a str {
 }
 
 impl<'a> From<LineSpan<'a>> for Range<usize> {
+    /// Returns [`range`].
+    ///
+    /// [`range`]: struct.LineSpan.html#method.range
     #[inline]
     fn from(span: LineSpan<'a>) -> Range<usize> {
         span.range()
@@ -486,6 +495,13 @@ impl<'a> From<LineSpan<'a>> for Range<usize> {
 }
 
 impl<'a> fmt::Debug for LineSpan<'a> {
+    /// Renders [`start`] and [`end`] of [`LineSpan`]
+    /// and [`as_str`] as `"line"`.
+    ///
+    /// [`LineSpan`]: struct.LineSpan.html
+    /// [`start`]: struct.LineSpan.html#method.start
+    /// [`end`]: struct.LineSpan.html#method.end
+    /// [`as_str`]: struct.LineSpan.html#method.as_str
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("LineSpan")
             .field("start", &self.start)
@@ -510,9 +526,6 @@ impl<'a> fmt::Display for LineSpan<'a> {
 /// [`LineSpan`]: struct.LineSpan.html
 /// [`LineSpans`]: trait.LineSpans.html
 /// [`line_spans`]: trait.LineSpans.html#tymethod.line_spans
-///
-/// [`lines`]: ../../std/primitive.str.html#method.lines
-/// [`str`]: ../../std/primitive.str.html
 #[allow(missing_debug_implementations)]
 pub struct LineSpanIter<'a> {
     text: &'a str,
