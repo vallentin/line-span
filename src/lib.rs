@@ -754,6 +754,7 @@ impl<'a> fmt::Display for LineSpan<'a> {
 /// [`LineSpans`]: trait.LineSpans.html
 /// [`line_spans`]: trait.LineSpans.html#tymethod.line_spans
 #[allow(missing_debug_implementations)]
+#[derive(Clone)]
 pub struct LineSpanIter<'a> {
     text: &'a str,
     iter: Lines<'a>,
