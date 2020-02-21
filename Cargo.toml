@@ -1,6 +1,6 @@
 [package]
 name = "line-span"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Christian Vallentin"]
 edition = "2018"
 description = "Find line ranges and jump between next and previous lines"

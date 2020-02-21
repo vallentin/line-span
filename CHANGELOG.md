@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.1.2 (2020-02-21)
+
+- Added `LineSpan::ending`, `LineSpan::range_with_ending`, and `LineSpan::as_str_with_ending`
+
 ## Version 0.1.1 (2020-02-16)
 
 - Optimized `LineSpanIter`
