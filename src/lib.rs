@@ -776,7 +776,7 @@ impl<'a> Iterator for LineSpanIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(line) = self.iter.next() {
             let Range { start, end } = str_to_range_unchecked(self.text, line);
-            let ending = find_next_line_start(self.text, end).unwrap_or(end);
+            let ending = find_next_line_start(self.text, end).unwrap_or_else(|| self.text.len());
 
             Some(LineSpan {
                 text: self.text,
@@ -854,21 +854,51 @@ fn test_line_spans() {
     assert_eq!(None, it.next());
 }
 
-#[test]
-fn test_line_spans_vs_lines() {
-    let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let mut iter_spans = text.line_spans();
-    let mut iter_lines = text.lines();
+    #[test]
+    fn test_line_spans_vs_lines() {
+        let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
 
-    loop {
-        let span = iter_spans.next();
-        let line = iter_lines.next();
+        let mut iter_spans = text.line_spans();
+        let mut iter_lines = text.lines();
 
-        assert_eq!(span.map(|s| s.as_str()), line);
+        loop {
+            let span = iter_spans.next();
+            let line = iter_lines.next();
 
-        if span.is_none() {
-            break;
+            assert_eq!(span.map(|s| s.as_str()), line);
+
+            if span.is_none() {
+                break;
+            }
         }
+    }
+
+    #[test]
+    fn test_line_span_ending() {
+        let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+
+        let lines = [
+            ("", "\r\n"),
+            ("foo", "foo\n"),
+            ("bar", "bar\r\n"),
+            ("baz", "baz\n"),
+            ("qux", "qux\r\n"),
+            ("", "\r"),
+        ];
+
+        let mut iter = text.line_spans();
+
+        for &expected in lines.iter() {
+            let actual = iter.next();
+            let actual = actual.map(|span| (span.as_str(), span.as_str_with_ending()));
+
+            assert_eq!(Some(expected), actual);
+        }
+
+        assert_eq!(None, iter.next());
     }
 }
