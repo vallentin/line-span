@@ -32,6 +32,7 @@
 //!
 //! The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
 //! with the addition that it includes the ability to get the start and end byte indices of each line.
+//! Additionally, it also includes the ability to get the end including and excluding the line ending (`\n` or `\r\n`).
 //!
 //! An [`LineSpanIter`] can be created by calling [`line_spans`](trait.LineSpans.html#tymethod.line_spans),
 //! implemented in the [`LineSpans`] trait.
@@ -46,16 +47,21 @@
 //! let text = "foo\nbar\r\nbaz";
 //!
 //! for span in text.line_spans() {
-//!     println!("{:>2?}: {:?}", span.range(), span.as_str());
+//!     println!(
+//!         "{:>2?}: {:?} {:?}",
+//!         span.range(),
+//!         span.as_str(),
+//!         span.as_str_with_ending(),
+//!     );
 //! }
 //! ```
 //!
 //! This will output the following:
 //!
 //! ```text
-//!  0.. 3: "foo"
-//!  4.. 7: "bar"
-//!  9..12: "baz"
+//! 0.. 3: "foo" "foo\n"
+//! 4.. 7: "bar" "bar\r\n"
+//! 9..12: "baz" "baz"
 //! ```
 //!
 //! [`LineSpan`]: struct.LineSpan.html
@@ -591,16 +597,21 @@ pub fn str_to_range_unchecked(string: &str, substring: &str) -> Range<usize> {
 /// let text = "foo\nbar\r\nbaz";
 ///
 /// for span in text.line_spans() {
-///     println!("{:>2?}: {:?}", span.range(), span.as_str());
+///     println!(
+///         "{:>2?}: {:?} {:?}",
+///         span.range(),
+///         span.as_str(),
+///         span.as_str_with_ending(),
+///     );
 /// }
 /// ```
 ///
 /// This will output the following:
 ///
 /// ```text
-///  0.. 3: "foo"
-///  4.. 7: "bar"
-///  9..12: "baz"
+/// 0.. 3: "foo" "foo\n"
+/// 4.. 7: "bar" "bar\r\n"
+/// 9..12: "baz" "baz"
 /// ```
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub struct LineSpan<'a> {

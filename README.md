@@ -56,6 +56,7 @@ Release notes are available in the repo at [CHANGELOG.md].
 
 The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
 with the addition that it includes the ability to get the start and end byte indices of each line.
+Additionally, it also includes the ability to get the end including and excluding the line ending (`\n` or `\r\n`).
 
 An [`LineSpanIter`] can be created by calling [`line_spans`](https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans), implemented in the [`LineSpans`] trait. The crate implements the [`LineSpans`] trait for [`str`] and [`String`].
 
@@ -68,16 +69,21 @@ use line_span::LineSpans;
 let text = "foo\nbar\r\nbaz";
 
 for span in text.line_spans() {
-    println!("{:>2?}: {:?}", span.range(), span.as_str());
+    println!(
+        "{:>2?}: {:?} {:?}",
+        span.range(),
+        span.as_str(),
+        span.as_str_with_ending(),
+    );
 }
 ```
 
 This will output the following:
 
 ```text
- 0.. 3: "foo"
- 4.. 7: "bar"
- 9..12: "baz"
+0.. 3: "foo" "foo\n"
+4.. 7: "bar" "bar\r\n"
+9..12: "baz" "baz"
 ```
 
 [`LineSpan`]: https://docs.rs/line-span/*/line_span/struct.LineSpan.html
@@ -113,4 +119,22 @@ assert_eq!(&text[prev_range], "foo");
 
 assert_eq!(next_range, 9..12);
 assert_eq!(&text[next_range], "baz");
+```
+
+# Range of Substring in String
+
+Use [`str_to_range`] (or [`str_to_range_unchecked`]) to get the
+range of a substring in a string.
+
+```rust
+let string1 = "Foo Bar Baz";
+let string2 = "Hello World";
+
+let substring = &string1[4..7]; // "Bar"
+
+// Returns `Some` as `substring` is a part of `string1`
+assert_eq!(str_to_range(string1, substring), Some(4..7));
+
+// Returns `None` as `substring` is not a part of `string2`
+assert_eq!(str_to_range(string2, substring), None);
 ```
