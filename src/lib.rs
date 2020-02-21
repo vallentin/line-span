@@ -581,9 +581,9 @@ pub fn str_to_range_unchecked(string: &str, substring: &str) -> Range<usize> {
     start..end
 }
 
-/// [`LineSpan`] represents a single line, excluding `\n` and `\r\n`.
-///
-/// [`LineSpan`]: struct.LineSpan.html
+/// `LineSpan` represents a single line. It is possible to
+/// get a `&str` of the line both including and excluding
+/// `\n` and `\r\n`.
 ///
 /// ```no_run
 /// use line_span::LineSpans;
@@ -607,6 +607,7 @@ pub struct LineSpan<'a> {
     text: &'a str,
     start: usize,
     end: usize,
+    ending: usize,
 }
 
 impl<'a> LineSpan<'a> {
@@ -616,22 +617,70 @@ impl<'a> LineSpan<'a> {
         self.start
     }
 
-    /// Returns the byte index of the end of the line.
+    /// Returns the byte index of the end of the line,
+    /// excluding the line ending part `\n` or `\r\n`.
+    ///
+    /// To include the line ending part, then use [`ending`].
+    ///
+    /// [`ending`]: struct.LineSpan.html#method.ending
     #[inline]
     pub fn end(&self) -> usize {
         self.end
     }
 
-    /// Returns the byte index range of the start and end of the line.
+    /// Returns the byte index of the end of the line,
+    /// including the line ending part `\n` or `\r\n`.
+    ///
+    /// To exclude the line ending part, then use [`end`].
+    ///
+    /// [`end`]: struct.LineSpan.html#method.end
+    #[inline]
+    pub fn ending(&self) -> usize {
+        self.ending
+    }
+
+    /// Returns the byte index range of the start and
+    /// end of the line, excluding the line ending
+    /// part `\n` or `\r\n`.
+    ///
+    /// To include the line ending part, then use [`range_with_ending`].
+    ///
+    /// [`range_with_ending`]: struct.LineSpan.html#method.range_with_ending
     #[inline]
     pub fn range(&self) -> Range<usize> {
         self.start..self.end
     }
 
+    /// Returns the byte index range of the start and
+    /// end of the line, including the line ending
+    /// part `\n` or `\r\n`.
+    ///
+    /// To exclude the line ending part, then use [`range`].
+    ///
+    /// [`range`]: struct.LineSpan.html#method.range
+    #[inline]
+    pub fn range_with_ending(&self) -> Range<usize> {
+        self.start..self.ending
+    }
+
     /// Returns `&str` of the line, excluding `\n` and `\r\n`.
+    ///
+    /// To include the line ending part, then use [`as_str_with_ending`].
+    ///
+    /// [`as_str_with_ending`]: struct.LineSpan.html#method.as_str_with_ending
     #[inline]
     pub fn as_str(&self) -> &'a str {
         &self.text[self.range()]
+    }
+
+    /// Returns `&str` of the line, including `\n` and `\r\n`.
+    ///
+    /// To exclude the line ending part, then use [`as_str`].
+    ///
+    /// [`as_str`]: struct.LineSpan.html#method.as_str
+    #[inline]
+    pub fn as_str_with_ending(&self) -> &'a str {
+        &self.text[self.range_with_ending()]
     }
 }
 
@@ -668,23 +717,28 @@ impl<'a> From<LineSpan<'a>> for Range<usize> {
 }
 
 impl<'a> fmt::Debug for LineSpan<'a> {
-    /// Renders [`start`] and [`end`] of [`LineSpan`]
-    /// and [`as_str`] as `"line"`.
+    /// Renders [`start`], [`end`], and [`ending`]
+    /// of [`LineSpan`] and [`as_str`] as `"line"`.
     ///
     /// [`LineSpan`]: struct.LineSpan.html
     /// [`start`]: struct.LineSpan.html#method.start
     /// [`end`]: struct.LineSpan.html#method.end
+    /// [`ending`]: struct.LineSpan.html#method.ending
     /// [`as_str`]: struct.LineSpan.html#method.as_str
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("LineSpan")
             .field("start", &self.start)
             .field("end", &self.end)
+            .field("ending", &self.ending)
             .field("line", &self.as_str())
             .finish()
     }
 }
 
 impl<'a> fmt::Display for LineSpan<'a> {
+    /// Renders [`as_str`].
+    ///
+    /// [`as_str`]: struct.LineSpan.html#method.as_str
     #[inline]
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         self.as_str().fmt(fmt)
@@ -722,11 +776,13 @@ impl<'a> Iterator for LineSpanIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(line) = self.iter.next() {
             let Range { start, end } = str_to_range_unchecked(self.text, line);
+            let ending = find_next_line_start(self.text, end).unwrap_or(end);
 
             Some(LineSpan {
                 text: self.text,
                 start,
                 end,
+                ending,
             })
         } else {
             None
