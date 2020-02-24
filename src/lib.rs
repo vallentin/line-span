@@ -954,10 +954,10 @@ mod tests {
         let mut iter = text.line_spans();
 
         for (expected, (line_end, line_ending)) in spans.iter().zip(&lines) {
-            let actual = iter.next().unwrap();
+            let actual = iter.next();
+            assert_eq!(Some(*expected), actual);
 
-            assert_eq!(*expected, actual);
-
+            let actual = actual.unwrap();
             assert_eq!(*line_end, actual.as_str());
             assert_eq!(*line_ending, actual.as_str_with_ending());
         }
