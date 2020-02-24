@@ -913,4 +913,55 @@ mod tests {
 
         assert_eq!(None, iter.next());
     }
+
+    #[test]
+    fn lib_example() {
+        // If this example is changed, then update both the
+        // code and the output in lib.rs and README.md.
+
+        let text = "foo\nbar\r\nbaz";
+
+        let spans = [
+            LineSpan {
+                text,
+                start: 0,
+                end: 3,
+                ending: 4,
+            },
+            LineSpan {
+                text,
+                start: 4,
+                end: 7,
+                ending: 9,
+            },
+            LineSpan {
+                text,
+                start: 9,
+                end: 12,
+                ending: 12,
+            },
+        ];
+
+        #[rustfmt::skip]
+        let lines = [
+            ("foo", "foo\n"),
+            ("bar", "bar\r\n"),
+            ("baz", "baz"),
+        ];
+
+        assert_eq!(spans.len(), lines.len());
+
+        let mut iter = text.line_spans();
+
+        for (expected, (line_end, line_ending)) in spans.iter().zip(&lines) {
+            let actual = iter.next().unwrap();
+
+            assert_eq!(*expected, actual);
+
+            assert_eq!(*line_end, actual.as_str());
+            assert_eq!(*line_ending, actual.as_str_with_ending());
+        }
+
+        assert_eq!(None, iter.next());
+    }
 }
