@@ -16,3 +16,8 @@ exclude = [".travis.yml", "/benches/", "/tests/"]
 travis-ci = { repository = "vallentin/line-span" }
 
 [dependencies]
+
+[features]
+default = ["alloc"]
+
+alloc = []

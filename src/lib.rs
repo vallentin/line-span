@@ -68,13 +68,13 @@
 //! [`LineSpanIter`]: struct.LineSpanIter.html
 //! [`LineSpans`]: trait.LineSpans.html
 //! [`line_spans`]: trait.LineSpans.html#tymethod.line_spans
-//! [`Deref`]: https://doc.rust-lang.org/stable/std/ops/trait.Deref.html
-//! [`&str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
-//! [`lines`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
-//! [`str::lines`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
+//! [`Deref`]: https://doc.rust-lang.org/stable/core/ops/trait.Deref.html
+//! [`&str`]: https://doc.rust-lang.org/stable/core/primitive.str.html
+//! [`lines`]: https://doc.rust-lang.org/stable/core/primitive.str.html#method.lines
+//! [`str::lines`]: https://doc.rust-lang.org/stable/core/primitive.str.html#method.lines
 //!
-//! [`str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
-//! [`String`]: https://doc.rust-lang.org/stable/std/string/struct.String.html
+//! [`str`]: https://doc.rust-lang.org/stable/core/primitive.str.html
+//! [`String`]: https://doc.rust-lang.org/stable/core/string/struct.String.html
 //!
 //! # Current Line, Previous Line, and Next Line
 //!
@@ -124,11 +124,15 @@
 // #![deny(missing_doc_code_examples)]
 #![deny(missing_debug_implementations)]
 #![warn(clippy::all)]
+#![no_std]
 
-use std::fmt;
-use std::iter::FusedIterator;
-use std::ops::{Deref, Range};
-use std::str::Lines;
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+use core::fmt;
+use core::iter::FusedIterator;
+use core::ops::{Deref, Range};
+use core::str::Lines;
 
 /// Find the start (byte index) of the line, which `index` is within.
 ///
@@ -233,7 +237,7 @@ pub fn find_line_range(text: &str, index: usize) -> Range<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -268,7 +272,7 @@ pub fn find_next_line_start(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -303,7 +307,7 @@ pub fn find_next_line_end(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -337,7 +341,7 @@ pub fn find_next_line_range(text: &str, index: usize) -> Option<Range<usize>> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -372,7 +376,7 @@ pub fn find_prev_line_start(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -413,7 +417,7 @@ pub fn find_prev_line_end(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
+/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
 ///
 /// ## See also
 ///
@@ -836,39 +840,40 @@ impl LineSpans for str {
     }
 }
 
-impl LineSpans for String {
+#[cfg(feature = "alloc")]
+impl LineSpans for alloc::string::String {
     #[inline]
     fn line_spans(&self) -> LineSpanIter {
         LineSpanIter::from(self.as_str())
     }
 }
 
-#[test]
-fn test_line_spans() {
-    let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
-
-    let mut it = text.line_spans();
-    assert_eq!(Some(""), it.next().as_deref());
-    assert_eq!(Some("foo"), it.next().as_deref());
-    assert_eq!(Some("bar"), it.next().as_deref());
-    assert_eq!(Some("baz"), it.next().as_deref());
-    assert_eq!(Some("qux"), it.next().as_deref());
-    assert_eq!(Some(""), it.next().as_deref());
-    assert_eq!(None, it.next().as_deref());
-
-    let mut it = text.line_spans().map(|span| span.range());
-    assert_eq!(Some(0..0), it.next());
-    assert_eq!(Some(2..5), it.next());
-    assert_eq!(Some(6..9), it.next());
-    assert_eq!(Some(11..14), it.next());
-    assert_eq!(Some(15..18), it.next());
-    assert_eq!(Some(20..20), it.next());
-    assert_eq!(None, it.next());
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_line_spans() {
+        let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+
+        let mut it = text.line_spans();
+        assert_eq!(Some(""), it.next().as_deref());
+        assert_eq!(Some("foo"), it.next().as_deref());
+        assert_eq!(Some("bar"), it.next().as_deref());
+        assert_eq!(Some("baz"), it.next().as_deref());
+        assert_eq!(Some("qux"), it.next().as_deref());
+        assert_eq!(Some(""), it.next().as_deref());
+        assert_eq!(None, it.next().as_deref());
+
+        let mut it = text.line_spans().map(|span| span.range());
+        assert_eq!(Some(0..0), it.next());
+        assert_eq!(Some(2..5), it.next());
+        assert_eq!(Some(6..9), it.next());
+        assert_eq!(Some(11..14), it.next());
+        assert_eq!(Some(15..18), it.next());
+        assert_eq!(Some(20..20), it.next());
+        assert_eq!(None, it.next());
+    }
 
     #[test]
     fn test_line_spans_vs_lines() {
