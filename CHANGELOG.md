@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased
+## Version 0.1.3 (2021-08-25)
+
 - Added default `alloc` feature, and made the crate `#![no_std]`
 
 ## Version 0.1.2 (2020-02-21)
