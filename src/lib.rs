@@ -118,6 +118,18 @@
 //! // Returns `None` as `substring` is not a part of `string2`
 //! assert_eq!(str_to_range(string2, substring), None);
 //! ```
+//!
+//! # Cached line access
+//!
+//! Use [`CachedLines`] to get O(1) access to a contained String
+//!
+//!
+//! ```
+//! use line_span::CachedLines;
+//! let cache = CachedLines::with_ending(String::from("hello\nworld"));
+//! assert_eq!(&cache[0], "hello\n");
+//! assert_eq!(&cache[1], "world");
+//! ```
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
@@ -131,7 +143,7 @@ extern crate alloc;
 
 use core::fmt;
 use core::iter::FusedIterator;
-use core::ops::{Deref, Range};
+use core::ops::{Deref, Index, Range};
 use core::str::Lines;
 
 /// Find the start (byte index) of the line, which `index` is within.
@@ -848,9 +860,116 @@ impl LineSpans for alloc::string::String {
     }
 }
 
+#[derive(Debug, Clone)]
+/// Owning pointer to a string that provides O(1) access to line slices
+///
+/// ```
+/// use line_span::CachedLines;
+/// let cache = CachedLines::without_ending(String::from("hello\nworld"));
+/// assert_eq!(&cache[0], "hello");
+/// assert_eq!(&cache[1], "world");
+/// ```
+///
+/// Slices might or might not include line breaks depending on a function used to construct it
+///
+/// - [`without_ending`](CachedLines::without_ending)
+/// - [`with_ending`](CachedLines::with_ending)
+///
+///
+#[cfg(feature = "alloc")]
+pub struct CachedLines {
+    content: alloc::string::String,
+    splits: alloc::vec::Vec<Range<usize>>,
+}
+
+#[cfg(feature = "alloc")]
+impl CachedLines {
+    /// Splits a [`String`](alloc::string::String) into lines, slices will include linebreaks
+    ///
+    /// ```
+    /// use line_span::CachedLines;
+    /// let cache = CachedLines::with_ending(String::from("hello\nworld"));
+    /// assert_eq!(&cache[0], "hello\n");
+    /// assert_eq!(&cache[1], "world");
+    /// ```
+    pub fn with_ending(content: alloc::string::String) -> Self {
+        let splits = content
+            .line_spans()
+            .map(|s| s.range_with_ending())
+            .collect::<alloc::vec::Vec<_>>();
+        Self { splits, content }
+    }
+
+    /// Splits a [`String`](alloc::string::String) into lines, slices will not include linebreaks
+    ///
+    /// ```
+    /// use line_span::CachedLines;
+    /// let cache = CachedLines::without_ending(String::from("hello\nworld"));
+    /// assert_eq!(&cache[0], "hello");
+    /// assert_eq!(&cache[1], "world");
+    /// ```
+    pub fn without_ending(content: alloc::string::String) -> Self {
+        let splits = content
+            .line_spans()
+            .map(|s| s.range())
+            .collect::<alloc::vec::Vec<_>>();
+        Self { splits, content }
+    }
+
+    /// Returns a reference to a line inside a contained string
+    ///
+    /// Returns [`None`] if index is out of bounds
+    /// ```
+    /// use line_span::CachedLines;
+    /// let cache = CachedLines::with_ending(String::from("hello\nworld"));
+    /// assert_eq!(cache.get(0), Some("hello\n"));
+    /// assert_eq!(cache.get(3), None);
+    /// ```
+    pub fn get(&self, index: usize) -> Option<&str> {
+        self.content.get(self.splits.get(index)?.clone())
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl Index<usize> for CachedLines {
+    type Output = str;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.content[self.splits[index].clone()]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_cached_lines_no_endings() {
+        let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+        let c = CachedLines::without_ending(alloc::string::String::from(text));
+
+        assert_eq!("", &c[0]);
+        assert_eq!("foo", &c[1]);
+        assert_eq!("bar", &c[2]);
+        assert_eq!("baz", &c[3]);
+        assert_eq!("qux", &c[4]);
+        assert_eq!("", &c[5]);
+        assert_eq!(None, c.get(6));
+    }
+
+    #[test]
+    fn test_cached_lines() {
+        let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+        let c = CachedLines::with_ending(alloc::string::String::from(text));
+
+        assert_eq!("\r\n", &c[0]);
+        assert_eq!("foo\n", &c[1]);
+        assert_eq!("bar\r\n", &c[2]);
+        assert_eq!("baz\n", &c[3]);
+        assert_eq!("qux\r\n", &c[4]);
+        assert_eq!(Some("\r"), c.get(5));
+        assert_eq!(None, c.get(6));
+    }
 
     #[test]
     fn test_line_spans() {
