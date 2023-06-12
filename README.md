@@ -140,6 +140,9 @@ assert_eq!(str_to_range(string2, substring), None);
 [`line_spans()`]: https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans
 [`Deref`]: https://doc.rust-lang.org/stable/std/ops/trait.Deref.html
 
+[`str_to_range()`]: https://docs.rs/line-span/*/line_span/fn.str_to_range.html
+[`str_to_range_unchecked()`]: https://docs.rs/line-span/*/line_span/fn.str_to_range_unchecked.html
+
 [`str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
 [`&str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
 [`lines()`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
