@@ -72,20 +72,23 @@ let text = "foo\nbar\r\nbaz";
 
 for span in text.line_spans() {
     println!(
-        "{:>2?}: {:?} {:?}",
+        "{:>2?}: {:?} {:?} {:?}",
         span.range(),
         span.as_str(),
         span.as_str_with_ending(),
+        span.ending_str(),
     );
 }
 ```
 
 This will output the following:
 
+_(Manually aligned for better readability)_
+
 ```text
-0.. 3: "foo" "foo\n"
-4.. 7: "bar" "bar\r\n"
-9..12: "baz" "baz"
+0.. 3: "foo" "foo\n"   "\n"
+4.. 7: "bar" "bar\r\n" "\r\n"
+9..12: "baz" "baz"     ""
 ```
 
 ## Current Line, Previous Line, and Next Line

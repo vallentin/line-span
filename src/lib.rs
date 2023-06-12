@@ -53,20 +53,23 @@
 //!
 //! for span in text.line_spans() {
 //!     println!(
-//!         "{:>2?}: {:?} {:?}",
+//!         "{:>2?}: {:?} {:?} {:?}",
 //!         span.range(),
 //!         span.as_str(),
 //!         span.as_str_with_ending(),
+//!         span.ending_str(),
 //!     );
 //! }
 //! ```
 //!
 //! This will output the following:
 //!
+//! _(Manually aligned for better readability)_
+//!
 //! ```text
-//! 0.. 3: "foo" "foo\n"
-//! 4.. 7: "bar" "bar\r\n"
-//! 9..12: "baz" "baz"
+//! 0.. 3: "foo" "foo\n"   "\n"
+//! 4.. 7: "bar" "bar\r\n" "\r\n"
+//! 9..12: "baz" "baz"     ""
 //! ```
 //!
 //! # Current Line, Previous Line, and Next Line
@@ -148,9 +151,14 @@ pub trait LineSpanExt {
     /// let text = "foo\nbar\r\nbaz";
     ///
     /// for span in text.line_spans() {
-    ///     println!("{:>2?}: {:?}", span.range(), span.as_str());
+    ///     println!(
+    ///         "{:>2?}: {:?} {:?} {:?}",
+    ///         span.range(),
+    ///         span.as_str(),
+    ///         span.as_str_with_ending(),
+    ///         span.ending_str(),
+    ///     );
     /// }
-    ///
     /// # let mut spans = text.line_spans();
     /// # assert!(matches!(spans.next(), Some(span) if span.range() == (0..3)));
     /// # assert!(matches!(spans.next(), Some(span) if span.range() == (4..7)));
@@ -160,10 +168,12 @@ pub trait LineSpanExt {
     ///
     /// This will output the following:
     ///
+    /// _(Manually aligned for better readability)_
+    ///
     /// ```text
-    ///  0.. 3: "foo"
-    ///  4.. 7: "bar"
-    ///  9..12: "baz"
+    /// 0.. 3: "foo" "foo\n"   "\n"
+    /// 4.. 7: "bar" "bar\r\n" "\r\n"
+    /// 9..12: "baz" "baz"     ""
     /// ```
     fn line_spans(&self) -> LineSpanIter<'_>;
 
@@ -735,6 +745,14 @@ impl<'a> LineSpan<'a> {
         self.start..self.ending
     }
 
+    /// Returns the start and end byte index range of
+    /// the ending part of the line, i.e. just the
+    /// `\n` or `\r\n` part.
+    #[inline]
+    pub fn ending_range(&self) -> Range<usize> {
+        self.end..self.ending
+    }
+
     /// Returns `&str` of the line, excluding `\n` and `\r\n`.
     ///
     /// To include the line ending part, then use [`as_str_with_ending()`].
@@ -753,6 +771,14 @@ impl<'a> LineSpan<'a> {
     #[inline]
     pub fn as_str_with_ending(&self) -> &'a str {
         &self.text[self.range_with_ending()]
+    }
+
+    /// Returns the string slice of the line ending, i.e.
+    /// just the `"\n"` or `"\r\n"` part or nothing, if
+    /// there is no line ending.
+    #[inline]
+    pub fn ending_str(&self) -> &'a str {
+        &self.text[self.ending_range()]
     }
 }
 
