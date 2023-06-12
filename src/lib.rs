@@ -4,42 +4,39 @@
 //!
 //! **Current Line:**
 //!
-//! - [`find_line_start`](fn.find_line_start.html) to find the start of the current line.
-//! - [`find_line_end`](fn.find_line_end.html) to find the end of the current line.
-//! - [`find_line_range`](fn.find_line_range.html) to find the start and end current line.
+//! - [`find_line_start()`] to find the start of the current line.
+//! - [`find_line_end()`] to find the end of the current line.
+//! - [`find_line_range()`] to find the start and end current line.
 //!
 //! **Next Line:**
 //!
-//! - [`find_next_line_start`](fn.find_next_line_start.html) to find the start of the next line.
-//! - [`find_next_line_end`](fn.find_next_line_end.html) to find the end of the next line.
-//! - [`find_next_line_range`](fn.find_next_line_range.html) to find the start and end of the next line.
+//! - [`find_next_line_start()`] to find the start of the next line.
+//! - [`find_next_line_end()`] to find the end of the next line.
+//! - [`find_next_line_range()`] to find the start and end of the next line.
 //!
 //! **Previous Line:**
 //!
-//! - [`find_prev_line_start`](fn.find_prev_line_start.html) to find the start of the previous line.
-//! - [`find_prev_line_end`](fn.find_prev_line_end.html) to find the end of the previous line.
-//! - [`find_prev_line_range`](fn.find_prev_line_range.html) to find both start and end of the previous line.
+//! - [`find_prev_line_start()`] to find the start of the previous line.
+//! - [`find_prev_line_end()`] to find the end of the previous line.
+//! - [`find_prev_line_range()`] to find both start and end of the previous line.
 //!
 //! **Utilities:**
 //!
-//! - [`str_to_range`] to get the range of a substring in a string.
-//! - [`str_to_range_unchecked`] unchecked version of [`str_to_range`].
-//!
-//! [`str_to_range`]: fn.str_to_range.html
-//! [`str_to_range_unchecked`]: fn.str_to_range_unchecked.html
+//! - [`str_to_range()`] to get the range of a substring in a string.
+//! - [`str_to_range_unchecked()`] unchecked version of [`str_to_range()`].
 //!
 //! # [`LineSpan`] and [`LineSpanIter`]
 //!
-//! The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
+//! The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines()`],
 //! with the addition that it includes the ability to get the start and end byte indices of each line.
 //! Additionally, it also includes the ability to get the end including and excluding the line ending (`\n` or `\r\n`).
 //!
-//! An [`LineSpanIter`] can be created by calling [`line_spans`](trait.LineSpans.html#tymethod.line_spans),
+//! An [`LineSpanIter`] can be created by calling [`line_spans()`](LineSpans::line_spans),
 //! implemented in the [`LineSpans`] trait.
 //! The crate implements the [`LineSpans`] trait for [`str`] and [`String`].
 //!
 //! Note, [`LineSpan`] implements [`Deref`] to [`&str`], so in general,
-//! swapping [`lines`] to [`line_spans`] would not cause many issues.
+//! swapping [`lines()`] to [`line_spans()`](LineSpans::line_spans) would not cause many issues.
 //!
 //! ```no_run
 //! use line_span::LineSpans;
@@ -64,17 +61,11 @@
 //! 9..12: "baz" "baz"
 //! ```
 //!
-//! [`LineSpan`]: struct.LineSpan.html
-//! [`LineSpanIter`]: struct.LineSpanIter.html
-//! [`LineSpans`]: trait.LineSpans.html
-//! [`line_spans`]: trait.LineSpans.html#tymethod.line_spans
-//! [`Deref`]: https://doc.rust-lang.org/stable/core/ops/trait.Deref.html
-//! [`&str`]: https://doc.rust-lang.org/stable/core/primitive.str.html
-//! [`lines`]: https://doc.rust-lang.org/stable/core/primitive.str.html#method.lines
-//! [`str::lines`]: https://doc.rust-lang.org/stable/core/primitive.str.html#method.lines
-//!
-//! [`str`]: https://doc.rust-lang.org/stable/core/primitive.str.html
-//! [`String`]: https://doc.rust-lang.org/stable/core/string/struct.String.html
+//! [`Deref`]: core::ops::Deref
+//! [`&str`]: core::str
+//! [`lines()`]: str::lines
+//! [`str::lines()`]: str::lines
+//! [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
 //!
 //! # Current Line, Previous Line, and Next Line
 //!
@@ -138,10 +129,10 @@ use core::str::Lines;
 ///
 /// ## See also
 ///
-/// - [`find_line_range`](fn.find_line_range.html) to find both start and end of a line.
-/// - [`find_line_end`](fn.find_line_end.html) to find the end of the line.
-/// - [`find_next_line_start`](fn.find_next_line_start.html) to find the start of the next line.
-/// - [`find_prev_line_start`](fn.find_prev_line_start.html) to find the start of the previous line.
+/// - [`find_line_end()`] to find the end of the line.
+/// - [`find_line_range()`] to find both start and end of a line.
+/// - [`find_next_line_start()`] to find the start of the next line.
+/// - [`find_prev_line_start()`] to find the start of the previous line.
 ///
 /// # Panics
 ///
@@ -169,10 +160,10 @@ pub fn find_line_start(text: &str, index: usize) -> usize {
 ///
 /// ## See also
 ///
-/// - [`find_line_range`](fn.find_line_range.html) to find both start and end of a line.
-/// - [`find_line_start`](fn.find_line_start.html) to find the start of the line.
-/// - [`find_next_line_end`](fn.find_next_line_end.html) to find the end of the next line.
-/// - [`find_prev_line_end`](fn.find_prev_line_end.html) to find the end of the previous line.
+/// - [`find_line_start()`] to find the start of the line.
+/// - [`find_line_range()`] to find both start and end of a line.
+/// - [`find_next_line_end()`] to find the end of the next line.
+/// - [`find_prev_line_end()`] to find the end of the previous line.
 ///
 /// # Panics
 ///
@@ -207,10 +198,10 @@ pub fn find_line_end(text: &str, index: usize) -> usize {
 ///
 /// ## See also
 ///
-/// - [`find_line_start`](fn.find_line_start.html) to find only the start of the line.
-/// - [`find_line_end`](fn.find_line_end.html) to find only the end of the line.
-/// - [`find_next_line_range`](fn.find_next_line_range.html) to find the start and end of the next line.
-/// - [`find_prev_line_range`](fn.find_prev_line_range.html) to find the start and end of the previous line.
+/// - [`find_line_start()`] to find only the start of the line.
+/// - [`find_line_end()`] to find only the end of the line.
+/// - [`find_next_line_range()`] to find the start and end of the next line.
+/// - [`find_prev_line_range()`] to find the start and end of the previous line.
 ///
 /// # Panics
 ///
@@ -237,14 +228,12 @@ pub fn find_line_range(text: &str, index: usize) -> Range<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_next_line_range`](fn.find_next_line_range.html) to find both start and end of the next line.
-/// - [`find_next_line_end`](fn.find_next_line_end.html) to find the end of the next line.
-/// - [`find_line_start`](fn.find_line_start.html) to find the start of the current line.
-/// - [`find_prev_line_start`](fn.find_prev_line_start.html) to find the start of the previous line.
+/// - [`find_next_line_end()`] to find the end of the next line.
+/// - [`find_next_line_range()`] to find both start and end of the next line.
+/// - [`find_line_start()`] to find the start of the current line.
+/// - [`find_prev_line_start()`] to find the start of the previous line.
 ///
 /// # Panics
 ///
@@ -272,14 +261,12 @@ pub fn find_next_line_start(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_next_line_range`](fn.find_next_line_range.html) to find both start and end of the next line.
-/// - [`find_next_line_start`](fn.find_next_line_start.html) to find the start of the next line.
-/// - [`find_line_start`](fn.find_line_start.html) to find the start of the current line.
-/// - [`find_prev_line_start`](fn.find_prev_line_start.html) to find the start of the previous line.
+/// - [`find_next_line_start()`] to find the start of the next line.
+/// - [`find_next_line_range()`] to find both start and end of the next line.
+/// - [`find_line_start()`] to find the start of the current line.
+/// - [`find_prev_line_start()`] to find the start of the previous line.
 ///
 /// # Panics
 ///
@@ -307,14 +294,12 @@ pub fn find_next_line_end(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no next line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_next_line_start`](fn.find_next_line_start.html) to find only the start of the next line.
-/// - [`find_next_line_end`](fn.find_line_end.html) to find only the end of the next line.
-/// - [`find_line_range`](fn.find_next_line_range.html) to find the start and end of the current line.
-/// - [`find_prev_line_range`](fn.find_prev_line_range.html) to find the start and end of the previous line.
+/// - [`find_next_line_start()`] to find only the start of the next line.
+/// - [`find_next_line_end()`] to find only the end of the next line.
+/// - [`find_line_range()`] to find the start and end of the current line.
+/// - [`find_prev_line_range()`] to find the start and end of the previous line.
 ///
 /// # Panics
 ///
@@ -341,14 +326,12 @@ pub fn find_next_line_range(text: &str, index: usize) -> Option<Range<usize>> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_prev_line_range`](fn.find_prev_line_range.html) to find both start and end of the previous line.
-/// - [`find_prev_line_end`](fn.find_prev_line_end.html) to find the end of the previous line.
-/// - [`find_line_start`](fn.find_line_start.html) to find the start of the current line.
-/// - [`find_next_line_start`](fn.find_next_line_start.html) to find the start of the next line.
+/// - [`find_prev_line_end()`] to find the end of the previous line.
+/// - [`find_prev_line_range()`] to find both start and end of the previous line.
+/// - [`find_line_start()`] to find the start of the current line.
+/// - [`find_next_line_start()`] to find the start of the next line.
 ///
 /// # Panics
 ///
@@ -376,14 +359,12 @@ pub fn find_prev_line_start(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_prev_line_range`](fn.find_prev_line_range.html) to find both start and end of the previous line.
-/// - [`find_prev_line_start`](fn.find_prev_line_start.html) to find the start of the previous line.
-/// - [`find_line_start`](fn.find_line_start.html) to find the start of the current line.
-/// - [`find_next_line_start`](fn.find_prev_line_start.html) to find the start of the next line.
+/// - [`find_prev_line_start()`] to find the start of the previous line.
+/// - [`find_prev_line_range()`] to find both start and end of the previous line.
+/// - [`find_line_start()`] to find the start of the current line.
+/// - [`find_next_line_start()`] to find the start of the next line.
 ///
 /// # Panics
 ///
@@ -417,14 +398,12 @@ pub fn find_prev_line_end(text: &str, index: usize) -> Option<usize> {
 ///
 /// Returns [`None`] if there is no previous line.
 ///
-/// [`None`]: https://doc.rust-lang.org/stable/core/option/enum.Option.html#variant.None
-///
 /// ## See also
 ///
-/// - [`find_prev_line_start`](fn.find_prev_line_start.html) to find only the start of the previous line.
-/// - [`find_prev_line_end`](fn.find_line_end.html) to find only the end of the previous line.
-/// - [`find_line_range`](fn.find_next_line_range.html) to find the start and end of the current line.
-/// - [`find_next_line_range`](fn.find_prev_line_range.html) to find the start and end of the next line.
+/// - [`find_prev_line_start()`] to find only the start of the previous line.
+/// - [`find_prev_line_end()`] to find only the end of the previous line.
+/// - [`find_line_range()`] to find the start and end of the current line.
+/// - [`find_next_line_range()`] to find the start and end of the next line.
 ///
 /// # Panics
 ///
@@ -453,9 +432,7 @@ pub fn find_prev_line_range(text: &str, index: usize) -> Option<Range<usize>> {
 ///
 /// Returns `Some` if `substring` is a part of `string`, otherwise `None`.
 ///
-/// *For an unchecked version, check out [`str_to_range_unchecked`].*
-///
-/// [`str_to_range_unchecked`]: fn.str_to_range_unchecked.html
+/// *For an unchecked version, check out [`str_to_range_unchecked()`].*
 ///
 /// # Example
 ///
@@ -529,9 +506,7 @@ pub fn str_to_range(string: &str, substring: &str) -> Option<Range<usize>> {
 /// If `substring` is not a part of `string`, it either panics or returns an
 /// invalid range.
 ///
-/// *For a safe version, check out [`str_to_range`].*
-///
-/// [`str_to_range`]: fn.str_to_range.html
+/// *For a safe version, check out [`str_to_range()`].*
 ///
 /// # Panics
 ///
@@ -635,9 +610,9 @@ impl<'a> LineSpan<'a> {
     /// Returns the byte index of the end of the line,
     /// excluding the line ending part `\n` or `\r\n`.
     ///
-    /// To include the line ending part, then use [`ending`].
+    /// To include the line ending part, then use [`ending()`].
     ///
-    /// [`ending`]: struct.LineSpan.html#method.ending
+    /// [`ending()`]: Self::ending
     #[inline]
     pub fn end(&self) -> usize {
         self.end
@@ -646,9 +621,9 @@ impl<'a> LineSpan<'a> {
     /// Returns the byte index of the end of the line,
     /// including the line ending part `\n` or `\r\n`.
     ///
-    /// To exclude the line ending part, then use [`end`].
+    /// To exclude the line ending part, then use [`end()`].
     ///
-    /// [`end`]: struct.LineSpan.html#method.end
+    /// [`end()`]: Self::end
     #[inline]
     pub fn ending(&self) -> usize {
         self.ending
@@ -658,9 +633,9 @@ impl<'a> LineSpan<'a> {
     /// end of the line, excluding the line ending
     /// part `\n` or `\r\n`.
     ///
-    /// To include the line ending part, then use [`range_with_ending`].
+    /// To include the line ending part, then use [`range_with_ending()`].
     ///
-    /// [`range_with_ending`]: struct.LineSpan.html#method.range_with_ending
+    /// [`range_with_ending()`]: Self::range_with_ending
     #[inline]
     pub fn range(&self) -> Range<usize> {
         self.start..self.end
@@ -670,9 +645,9 @@ impl<'a> LineSpan<'a> {
     /// end of the line, including the line ending
     /// part `\n` or `\r\n`.
     ///
-    /// To exclude the line ending part, then use [`range`].
+    /// To exclude the line ending part, then use [`range()`].
     ///
-    /// [`range`]: struct.LineSpan.html#method.range
+    /// [`range()`]: Self::range
     #[inline]
     pub fn range_with_ending(&self) -> Range<usize> {
         self.start..self.ending
@@ -680,9 +655,9 @@ impl<'a> LineSpan<'a> {
 
     /// Returns `&str` of the line, excluding `\n` and `\r\n`.
     ///
-    /// To include the line ending part, then use [`as_str_with_ending`].
+    /// To include the line ending part, then use [`as_str_with_ending()`].
     ///
-    /// [`as_str_with_ending`]: struct.LineSpan.html#method.as_str_with_ending
+    /// [`as_str_with_ending()`]: Self::as_str_with_ending
     #[inline]
     pub fn as_str(&self) -> &'a str {
         &self.text[self.range()]
@@ -690,9 +665,9 @@ impl<'a> LineSpan<'a> {
 
     /// Returns `&str` of the line, including `\n` and `\r\n`.
     ///
-    /// To exclude the line ending part, then use [`as_str`].
+    /// To exclude the line ending part, then use [`as_str()`].
     ///
-    /// [`as_str`]: struct.LineSpan.html#method.as_str
+    /// [`as_str()`]: Self::as_str
     #[inline]
     pub fn as_str_with_ending(&self) -> &'a str {
         &self.text[self.range_with_ending()]
@@ -702,9 +677,9 @@ impl<'a> LineSpan<'a> {
 impl<'a> Deref for LineSpan<'a> {
     type Target = str;
 
-    /// Returns [`as_str`].
+    /// Returns [`as_str()`].
     ///
-    /// [`as_str`]: struct.LineSpan.html#method.as_str
+    /// [`as_str()`]: Self::as_str
     #[inline]
     fn deref(&self) -> &Self::Target {
         self.as_str()
@@ -712,9 +687,9 @@ impl<'a> Deref for LineSpan<'a> {
 }
 
 impl<'a> From<LineSpan<'a>> for &'a str {
-    /// Returns [`as_str`].
+    /// Returns [`as_str()`].
     ///
-    /// [`as_str`]: struct.LineSpan.html#method.as_str
+    /// [`as_str()`]: LineSpan::as_str
     #[inline]
     fn from(span: LineSpan<'a>) -> &'a str {
         span.as_str()
@@ -722,9 +697,9 @@ impl<'a> From<LineSpan<'a>> for &'a str {
 }
 
 impl<'a> From<LineSpan<'a>> for Range<usize> {
-    /// Returns [`range`].
+    /// Returns [`range()`].
     ///
-    /// [`range`]: struct.LineSpan.html#method.range
+    /// [`range()`]: LineSpan::range
     #[inline]
     fn from(span: LineSpan<'a>) -> Range<usize> {
         span.range()
@@ -732,14 +707,13 @@ impl<'a> From<LineSpan<'a>> for Range<usize> {
 }
 
 impl<'a> fmt::Debug for LineSpan<'a> {
-    /// Renders [`start`], [`end`], and [`ending`]
-    /// of [`LineSpan`] and [`as_str`] as `"line"`.
+    /// Renders [`start()`], [`end()`], and [`ending()`]
+    /// of [`LineSpan`] and [`as_str()`] as `"line"`.
     ///
-    /// [`LineSpan`]: struct.LineSpan.html
-    /// [`start`]: struct.LineSpan.html#method.start
-    /// [`end`]: struct.LineSpan.html#method.end
-    /// [`ending`]: struct.LineSpan.html#method.ending
-    /// [`as_str`]: struct.LineSpan.html#method.as_str
+    /// [`start()`]: Self::start
+    /// [`end()`]: Self::end
+    /// [`ending()`]: Self::ending
+    /// [`as_str()`]: Self::as_str
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("LineSpan")
             .field("start", &self.start)
@@ -760,14 +734,12 @@ impl<'a> fmt::Display for LineSpan<'a> {
     }
 }
 
-/// An iterator over `LineSpan`s.
+/// An iterator over [`LineSpan`]s.
 ///
-/// This struct is created with the [`line_spans`] method in the [`LineSpans`] trait.
+/// This struct is created with the [`line_spans()`] method in the [`LineSpans`] trait.
 /// See its documentation for more.
 ///
-/// [`LineSpan`]: struct.LineSpan.html
-/// [`LineSpans`]: trait.LineSpans.html
-/// [`line_spans`]: trait.LineSpans.html#tymethod.line_spans
+/// [`line_spans()`]: LineSpans::line_spans
 #[allow(missing_debug_implementations)]
 #[derive(Clone)]
 pub struct LineSpanIter<'a> {
@@ -808,8 +780,7 @@ impl<'a> Iterator for LineSpanIter<'a> {
 
 impl<'a> FusedIterator for LineSpanIter<'a> {}
 
-/// Trait which implements [`line_spans`](trait.LineSpans.html#tymethod.line_spans)
-/// to get a [`LineSpanIter`](struct.LineSpanIter.html).
+/// Trait which implements [`line_spans()`] to get a [`LineSpanIter`].
 ///
 /// ```no_run
 /// use line_span::LineSpans;
@@ -828,8 +799,10 @@ impl<'a> FusedIterator for LineSpanIter<'a> {}
 ///  4.. 7: "bar"
 ///  9..12: "baz"
 /// ```
+///
+/// [`line_spans()`]: LineSpans::line_spans
 pub trait LineSpans {
-    /// Creates a [`LineSpanIter`](struct.LineSpanIter.html).
+    /// Creates a [`LineSpanIter`].
     fn line_spans(&self) -> LineSpanIter;
 }
 

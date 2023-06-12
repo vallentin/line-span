@@ -53,7 +53,7 @@ Release notes are available in the repo at [CHANGELOG.md].
 [`str_to_range`]: https://docs.rs/line-span/*/line_span/fn.str_to_range.html
 [`str_to_range_unchecked`]: https://docs.rs/line-span/*/line_span/fn.str_to_range_unchecked.html
 
-# [`LineSpan`] and [`LineSpanIter`]
+## [`LineSpan`] and [`LineSpanIter`]
 
 The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
 with the addition that it includes the ability to get the start and end byte indices of each line.
@@ -99,7 +99,7 @@ This will output the following:
 [`str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
 [`String`]: https://doc.rust-lang.org/stable/std/string/struct.String.html
 
-# Current Line, Previous Line, and Next Line
+## Current Line, Previous Line, and Next Line
 
 ```rust
 use line_span::{find_line_range, find_next_line_range, find_prev_line_range};
@@ -122,7 +122,7 @@ assert_eq!(next_range, 9..12);
 assert_eq!(&text[next_range], "baz");
 ```
 
-# Range of Substring in String
+## Range of Substring in String
 
 Use [`str_to_range`] (or [`str_to_range_unchecked`]) to get the
 range of a substring in a string.
