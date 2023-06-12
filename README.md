@@ -1,6 +1,6 @@
 # line-span
 
-[![Build Status](https://github.com/vallentin/line-span/workflows/Rust/badge.svg)](https://github.com/vallentin/line-span/actions?query=workflow%3ARust)
+[![CI](https://github.com/vallentin/line-span/workflows/CI/badge.svg)](https://github.com/vallentin/line-span/actions?query=workflow%3ACI)
 [![Latest Version](https://img.shields.io/crates/v/line-span.svg)](https://crates.io/crates/line-span)
 [![Docs](https://docs.rs/line-span/badge.svg)](https://docs.rs/line-span)
 [![License](https://img.shields.io/github/license/vallentin/line-span.svg)](https://github.com/vallentin/line-span)
