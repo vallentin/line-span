@@ -2,6 +2,7 @@
 
 ## Version 0.?.? (20??-??-??)
 
+- Implemented `trait LineSpanExt`
 - Updated to adhere to Rust 1.70, which changed the behavior of `.lines()`, such that the trailing `\r` on the last line is kept
 
 ## Version 0.1.3 (2021-08-25)

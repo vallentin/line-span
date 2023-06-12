@@ -6,9 +6,12 @@
 [![Docs](https://docs.rs/line-span/badge.svg)](https://docs.rs/line-span)
 [![License](https://img.shields.io/github/license/vallentin/line-span.svg)](https://github.com/vallentin/line-span)
 
-This crate features utilities for finding the start, end, and range of lines
-from a byte index.
-Further also being able to find the next and previous line, from an arbitrary byte index.
+This crate features utilities for finding the start, end, and range of
+lines from a byte index. Further also being able to find the next and
+previous line, from an arbitrary byte index.
+
+This is provided via the <code>trait [LineSpanExt]</code>, which is
+implemented for [`str`], and provides the following methods:
 
 ## Usage
 
@@ -23,46 +26,44 @@ line-span = "0.1"
 
 Release notes are available in the repo at [CHANGELOG.md].
 
-[CHANGELOG.md]: CHANGELOG.md
-
 -----
 
 **Current Line:**
 
-- [`find_line_start`](https://docs.rs/line-span/*/line_span/fn.find_line_start.html) to find the start of the current line.
-- [`find_line_end`](https://docs.rs/line-span/*/line_span/fn.find_line_end.html) to find the end of the current line.
-- [`find_line_range`](https://docs.rs/line-span/*/line_span/fn.find_line_range.html) to find the start and end current line.
+- [`find_line_start()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_line_start) to find the start of the current line.
+- [`find_line_end()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_line_end) to find the end of the current line.
+- [`find_line_range()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_line_range) to find the start and end current line.
 
 **Next Line:**
 
-- [`find_next_line_start`](https://docs.rs/line-span/*/line_span/fn.find_next_line_start.html) to find the start of the next line.
-- [`find_next_line_end`](https://docs.rs/line-span/*/line_span/fn.find_next_line_end.html) to find the end of the next line.
-- [`find_next_line_range`](https://docs.rs/line-span/*/line_span/fn.find_next_line_range.html) to find the start and end of the next line.
+- [`find_next_line_start()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_next_line_start) to find the start of the next line.
+- [`find_next_line_end()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_next_line_end) to find the end of the next line.
+- [`find_next_line_range()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_next_line_range) to find the start and end of the next line.
 
 **Previous Line:**
 
-- [`find_prev_line_start`](https://docs.rs/line-span/*/line_span/fn.find_prev_line_start.html) to find the start of the previous line.
-- [`find_prev_line_end`](https://docs.rs/line-span/*/line_span/fn.find_prev_line_end.html) to find the end of the previous line.
-- [`find_prev_line_range`](https://docs.rs/line-span/*/line_span/fn.find_prev_line_range.html) to find both start and end of the previous line.
+- [`find_prev_line_start()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_prev_line_start) to find the start of the previous line.
+- [`find_prev_line_end()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_prev_line_end) to find the end of the previous line.
+- [`find_prev_line_range()`](https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html#tymethod.find_prev_line_range) to find both start and end of the previous line.
 
 **Utilities:**
 
-- [`str_to_range`] to get the range of a substring in a string.
-- [`str_to_range_unchecked`] unchecked version of [`str_to_range`].
+- [`str_to_range()`] to get the range of a substring in a string.
+- [`str_to_range_unchecked()`] unchecked version of [`str_to_range()`].
 
 [`str_to_range`]: https://docs.rs/line-span/*/line_span/fn.str_to_range.html
 [`str_to_range_unchecked`]: https://docs.rs/line-span/*/line_span/fn.str_to_range_unchecked.html
 
 ## [`LineSpan`] and [`LineSpanIter`]
 
-The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines`],
+The crate includes the [`LineSpanIter`] iterator. It is functionally equivalent to [`str::lines()`],
 with the addition that it includes the ability to get the start and end byte indices of each line.
 Additionally, it also includes the ability to get the end including and excluding the line ending (`\n` or `\r\n`).
 
-An [`LineSpanIter`] can be created by calling [`line_spans`](https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans), implemented in the [`LineSpans`] trait. The crate implements the [`LineSpans`] trait for [`str`] and [`String`].
+An [`LineSpanIter`] can be created by calling [`line_spans()`](https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans), implemented in the [`LineSpans`] trait. The crate implements the [`LineSpans`] trait for [`str`] and [`String`].
 
 Note, [`LineSpan`] implements [`Deref`] to [`&str`], so in general,
-swapping [`lines`] to [`line_spans`] would not cause many issues.
+swapping [`lines()`] to [`line_spans()`] would not cause many issues.
 
 ```rust
 use line_span::LineSpans;
@@ -87,30 +88,18 @@ This will output the following:
 9..12: "baz" "baz"
 ```
 
-[`LineSpan`]: https://docs.rs/line-span/*/line_span/struct.LineSpan.html
-[`LineSpanIter`]: https://docs.rs/line-span/*/line_span/struct.LineSpanIter.html
-[`LineSpans`]: https://docs.rs/line-span/*/line_span/trait.LineSpans.html
-[`line_spans`]: https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans
-[`Deref`]: https://doc.rust-lang.org/stable/std/ops/trait.Deref.html
-[`&str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
-[`lines`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
-[`str::lines`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
-
-[`str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
-[`String`]: https://doc.rust-lang.org/stable/std/string/struct.String.html
-
 ## Current Line, Previous Line, and Next Line
 
 ```rust
-use line_span::{find_line_range, find_next_line_range, find_prev_line_range};
+use line_span::LineSpanExt;
 
 let text = "foo\nbar\r\nbaz";
 //                ^
 let i = 5; // 'a' in "bar"
 
-let curr_range = find_line_range(text, i);
-let next_range = find_next_line_range(text, i).unwrap();
-let prev_range = find_prev_line_range(text, i).unwrap();
+let curr_range = text.find_line_range(i);
+let next_range = text.find_next_line_range(i).unwrap();
+let prev_range = text.find_prev_line_range(i).unwrap();
 
 assert_eq!(curr_range, 4..7);
 assert_eq!(&text[curr_range], "bar");
@@ -139,3 +128,19 @@ assert_eq!(str_to_range(string1, substring), Some(4..7));
 // Returns `None` as `substring` is not a part of `string2`
 assert_eq!(str_to_range(string2, substring), None);
 ```
+
+[CHANGELOG.md]: CHANGELOG.md
+
+[LineSpanExt]: https://docs.rs/line-span/*/line_span/trait.LineSpanExt.html
+[`LineSpan`]: https://docs.rs/line-span/*/line_span/struct.LineSpan.html
+[`LineSpanIter`]: https://docs.rs/line-span/*/line_span/struct.LineSpanIter.html
+[`LineSpans`]: https://docs.rs/line-span/*/line_span/trait.LineSpans.html
+[`line_spans()`]: https://docs.rs/line-span/*/line_span/trait.LineSpans.html#tymethod.line_spans
+[`Deref`]: https://doc.rust-lang.org/stable/std/ops/trait.Deref.html
+
+[`str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
+[`&str`]: https://doc.rust-lang.org/stable/std/primitive.str.html
+[`lines()`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
+[`str::lines()`]: https://doc.rust-lang.org/stable/std/primitive.str.html#method.lines
+
+[`String`]: https://doc.rust-lang.org/stable/std/string/struct.String.html

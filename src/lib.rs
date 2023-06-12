@@ -1,24 +1,32 @@
-//! This crate features utilities for finding the start, end, and range of lines
-//! from a byte index.
-//! Further also being able to find the next and previous line, from an arbitrary byte index.
+//! This crate features utilities for finding the start, end, and range of
+//! lines from a byte index. Further also being able to find the next and
+//! previous line, from an arbitrary byte index.
+//!
+//! This is provided via the <code>trait [LineSpanExt]</code>, which is
+//! implemented for [`str`], and provides the following methods:
 //!
 //! **Current Line:**
 //!
-//! - [`find_line_start()`] to find the start of the current line.
-//! - [`find_line_end()`] to find the end of the current line.
-//! - [`find_line_range()`] to find the start and end current line.
+//! - [`find_line_start()`](LineSpanExt::find_line_start) to find the start of the current line.
+//! - [`find_line_end()`](LineSpanExt::find_line_end) to find the end of the current line.
+//! - [`find_line_range()`](LineSpanExt::find_line_range) to find the start and end current line.
 //!
 //! **Next Line:**
 //!
-//! - [`find_next_line_start()`] to find the start of the next line.
-//! - [`find_next_line_end()`] to find the end of the next line.
-//! - [`find_next_line_range()`] to find the start and end of the next line.
+//! - [`find_next_line_start()`](LineSpanExt::find_next_line_start) to find the start of the next line.
+//! - [`find_next_line_end()`](LineSpanExt::find_next_line_end) to find the end of the next line.
+//! - [`find_next_line_range()`](LineSpanExt::find_next_line_range) to find the start and end of the next line.
 //!
 //! **Previous Line:**
 //!
-//! - [`find_prev_line_start()`] to find the start of the previous line.
-//! - [`find_prev_line_end()`] to find the end of the previous line.
-//! - [`find_prev_line_range()`] to find both start and end of the previous line.
+//! - [`find_prev_line_start()`](LineSpanExt::find_prev_line_start) to find the start of the previous line.
+//! - [`find_prev_line_end()`](LineSpanExt::find_prev_line_end) to find the end of the previous line.
+//! - [`find_prev_line_range()`](LineSpanExt::find_prev_line_range) to find both start and end of the previous line.
+//!
+//! **Iterator:**
+//!
+//! - [`line_spans()`](LineSpanExt::line_spans) an iterator over [`LineSpan`]s, i.e. [`str::lines()`] but including the
+//! start and end byte indicies (in the form of a [`Range<usize>`]).
 //!
 //! **Utilities:**
 //!
@@ -38,8 +46,8 @@
 //! Note, [`LineSpan`] implements [`Deref`] to [`&str`], so in general,
 //! swapping [`lines()`] to [`line_spans()`](LineSpans::line_spans) would not cause many issues.
 //!
-//! ```no_run
-//! use line_span::LineSpans;
+//! ```rust
+//! use line_span::LineSpanExt;
 //!
 //! let text = "foo\nbar\r\nbaz";
 //!
@@ -61,24 +69,18 @@
 //! 9..12: "baz" "baz"
 //! ```
 //!
-//! [`Deref`]: core::ops::Deref
-//! [`&str`]: core::str
-//! [`lines()`]: str::lines
-//! [`str::lines()`]: str::lines
-//! [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
-//!
 //! # Current Line, Previous Line, and Next Line
 //!
-//! ```
-//! use line_span::{find_line_range, find_next_line_range, find_prev_line_range};
+//! ```rust
+//! use line_span::LineSpanExt;
 //!
 //! let text = "foo\nbar\r\nbaz";
 //! //                ^
 //! let i = 5; // 'a' in "bar"
 //!
-//! let curr_range = find_line_range(text, i);
-//! let next_range = find_next_line_range(text, i).unwrap();
-//! let prev_range = find_prev_line_range(text, i).unwrap();
+//! let curr_range = text.find_line_range(i);
+//! let next_range = text.find_next_line_range(i).unwrap();
+//! let prev_range = text.find_prev_line_range(i).unwrap();
 //!
 //! assert_eq!(curr_range, 4..7);
 //! assert_eq!(&text[curr_range], "bar");
@@ -95,7 +97,7 @@
 //! Use [`str_to_range`] (or [`str_to_range_unchecked`]) to get the
 //! range of a substring in a string.
 //!
-//! ```
+//! ```rust
 //! # use line_span::str_to_range;
 //! let string1 = "Foo Bar Baz";
 //! let string2 = "Hello World";
@@ -109,8 +111,15 @@
 //! // Returns `None` as `substring` is not a part of `string2`
 //! assert_eq!(str_to_range(string2, substring), None);
 //! ```
+//!
+//! [`Deref`]: core::ops::Deref
+//! [`&str`]: core::str
+//! [`lines()`]: str::lines
+//! [`str::lines()`]: str::lines
+//! [`String`]: https://doc.rust-lang.org/std/string/struct.String.html
 
 #![forbid(unsafe_code)]
+#![forbid(elided_lifetimes_in_paths)]
 #![deny(missing_docs)]
 // #![deny(missing_doc_code_examples)]
 #![deny(missing_debug_implementations)]
@@ -125,305 +134,379 @@ use core::iter::FusedIterator;
 use core::ops::{Deref, Range};
 use core::str::Lines;
 
-/// Find the start (byte index) of the line, which `index` is within.
-///
-/// ## See also
-///
-/// - [`find_line_end()`] to find the end of the line.
-/// - [`find_line_range()`] to find both start and end of a line.
-/// - [`find_next_line_start()`] to find the start of the next line.
-/// - [`find_prev_line_start()`] to find the start of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 5; // 'a'
-///
-/// let start = line_span::find_line_start(text, i);
-///
-/// assert_eq!(start, 4);
-/// assert_eq!(&text[start..], "bar\nbaz");
-/// ```
-#[inline]
-pub fn find_line_start(text: &str, index: usize) -> usize {
-    text[..index].rfind('\n').map_or(0, |i| i + 1)
+/// Trait implementing utility methods for finding the start, end, and range of
+/// lines from a byte index. Further also being able to find the next and
+/// previous line, from an arbitrary byte index.
+pub trait LineSpanExt {
+    /// Creates a [`LineSpanIter`].
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use line_span::LineSpanExt;
+    ///
+    /// let text = "foo\nbar\r\nbaz";
+    ///
+    /// for span in text.line_spans() {
+    ///     println!("{:>2?}: {:?}", span.range(), span.as_str());
+    /// }
+    ///
+    /// # let mut spans = text.line_spans();
+    /// # assert!(matches!(spans.next(), Some(span) if span.range() == (0..3)));
+    /// # assert!(matches!(spans.next(), Some(span) if span.range() == (4..7)));
+    /// # assert!(matches!(spans.next(), Some(span) if span.range() == (9..12)));
+    /// # assert_eq!(spans.next(), None);
+    /// ```
+    ///
+    /// This will output the following:
+    ///
+    /// ```text
+    ///  0.. 3: "foo"
+    ///  4.. 7: "bar"
+    ///  9..12: "baz"
+    /// ```
+    fn line_spans(&self) -> LineSpanIter<'_>;
+
+    /// Find the start (byte index) of the line, which `index` is within.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// let i = 5; // 'a'
+    ///
+    /// let start = text.find_line_start(i);
+    ///
+    /// assert_eq!(start, 4);
+    /// assert_eq!(&text[start..], "bar\nbaz");
+    /// ```
+    fn find_line_start(&self, index: usize) -> usize;
+
+    /// Find the end (byte index) of the line, which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// let i = 5; // 'a'
+    ///
+    /// let end = text.find_line_end(i);
+    ///
+    /// assert_eq!(end, 7);
+    /// assert_eq!(&text[..end], "foo\nbar");
+    /// ```
+    fn find_line_end(&self, index: usize) -> usize;
+
+    /// Find the start and end (byte index) of the line, which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //                ^
+    /// let i = 5; // 'a'
+    ///
+    /// let range = text.find_line_range(i);
+    /// assert_eq!(range, 4..7);
+    ///
+    /// let line = &text[range];
+    /// assert_eq!(line, "bar");
+    /// ```
+    fn find_line_range(&self, index: usize) -> Range<usize>;
+
+    /// Find the start (byte index) of the next line, the line after the one which `index` is within.
+    ///
+    /// Returns [`None`] if there is no next line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //           ^
+    /// let i = 1; // 'o'
+    ///
+    /// let start = text.find_next_line_start(i).unwrap();
+    ///
+    /// assert_eq!(start, 4);
+    /// assert_eq!(&text[start..], "bar\nbaz");
+    /// ```
+    fn find_next_line_start(&self, index: usize) -> Option<usize>;
+
+    /// Find the end (byte index) of the next line, the line after the one which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// Returns [`None`] if there is no next line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //           ^
+    /// let i = 1; // 'o'
+    ///
+    /// let end = text.find_next_line_end(i).unwrap();
+    ///
+    /// assert_eq!(end, 7);
+    /// assert_eq!(&text[..end], "foo\nbar");
+    /// ```
+    fn find_next_line_end(&self, index: usize) -> Option<usize>;
+
+    /// Find the start and end (byte index) of the next line, the line after the one which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// Returns [`None`] if there is no next line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //           ^
+    /// let i = 1; // 'o'
+    ///
+    /// let range = text.find_next_line_range(i).unwrap();
+    /// assert_eq!(range, 4..7);
+    ///
+    /// let line = &text[range];
+    /// assert_eq!(line, "bar");
+    /// ```
+    fn find_next_line_range(&self, index: usize) -> Option<Range<usize>>;
+
+    /// Find the start (byte index) of the previous line, the line before the one which `index` is within.
+    ///
+    /// Returns [`None`] if there is no previous line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //                     ^
+    /// let i = 9; // 'a'
+    ///
+    /// let start = text.find_prev_line_start(i).unwrap();
+    ///
+    /// assert_eq!(start, 4);
+    /// assert_eq!(&text[start..], "bar\nbaz");
+    /// ```
+    fn find_prev_line_start(&self, index: usize) -> Option<usize>;
+
+    /// Find the end (byte index) of the previous line, the line before the one which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// Returns [`None`] if there is no previous line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //                     ^
+    /// let i = 9; // 'a'
+    ///
+    /// let end = text.find_prev_line_end(i).unwrap();
+    ///
+    /// assert_eq!(end, 7);
+    /// assert_eq!(&text[..end], "foo\nbar");
+    /// ```
+    fn find_prev_line_end(&self, index: usize) -> Option<usize>;
+
+    /// Find the start and end (byte index) of the previous line, the line before the one which `index` is within.
+    ///
+    /// Note the end is the last character, excluding `\n` and `\r\n`.
+    ///
+    /// Returns [`None`] if there is no previous line.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `index` is out of bounds.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use line_span::LineSpanExt;
+    /// let text = "foo\nbar\nbaz";
+    /// //                     ^
+    /// let i = 9; // 'a'
+    ///
+    /// let range = text.find_prev_line_range(i).unwrap();
+    /// assert_eq!(range, 4..7);
+    ///
+    /// let line = &text[range];
+    /// assert_eq!(line, "bar");
+    /// ```
+    fn find_prev_line_range(&self, index: usize) -> Option<Range<usize>>;
 }
 
-/// Find the end (byte index) of the line, which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// ## See also
-///
-/// - [`find_line_start()`] to find the start of the line.
-/// - [`find_line_range()`] to find both start and end of a line.
-/// - [`find_next_line_end()`] to find the end of the next line.
-/// - [`find_prev_line_end()`] to find the end of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 5; // 'a'
-///
-/// let end = line_span::find_line_end(text, i);
-///
-/// assert_eq!(end, 7);
-/// assert_eq!(&text[..end], "foo\nbar");
-/// ```
-pub fn find_line_end(text: &str, index: usize) -> usize {
-    let end = text[index..]
-        .find('\n')
-        .map_or_else(|| text.len(), |i| index + i);
-
-    if (end > 0) && (text.as_bytes()[end - 1] == b'\r') {
-        end - 1
-    } else {
-        end
+impl LineSpanExt for str {
+    #[inline]
+    fn line_spans(&self) -> LineSpanIter<'_> {
+        LineSpanIter::from(self)
     }
-}
 
-/// Find the start and end (byte index) of the line, which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// ## See also
-///
-/// - [`find_line_start()`] to find only the start of the line.
-/// - [`find_line_end()`] to find only the end of the line.
-/// - [`find_next_line_range()`] to find the start and end of the next line.
-/// - [`find_prev_line_range()`] to find the start and end of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 5; // 'a'
-///
-/// let range = line_span::find_line_range(text, i);
-/// assert_eq!(range, 4..7);
-///
-/// let line = &text[range];
-/// assert_eq!(line, "bar");
-/// ```
-#[inline]
-pub fn find_line_range(text: &str, index: usize) -> Range<usize> {
-    find_line_start(text, index)..find_line_end(text, index)
-}
+    #[inline]
+    fn find_line_start(&self, index: usize) -> usize {
+        self[..index].rfind('\n').map_or(0, |i| i + 1)
+    }
 
-/// Find the start (byte index) of the next line, the line after the one which `index` is within.
-///
-/// Returns [`None`] if there is no next line.
-///
-/// ## See also
-///
-/// - [`find_next_line_end()`] to find the end of the next line.
-/// - [`find_next_line_range()`] to find both start and end of the next line.
-/// - [`find_line_start()`] to find the start of the current line.
-/// - [`find_prev_line_start()`] to find the start of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 1; // 'o'
-///
-/// let start = line_span::find_next_line_start(text, i).unwrap();
-///
-/// assert_eq!(start, 4);
-/// assert_eq!(&text[start..], "bar\nbaz");
-/// ```
-#[inline]
-pub fn find_next_line_start(text: &str, index: usize) -> Option<usize> {
-    text[index..].find('\n').map(|i| index + i + 1)
-}
-
-/// Find the end (byte index) of the next line, the line after the one which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// Returns [`None`] if there is no next line.
-///
-/// ## See also
-///
-/// - [`find_next_line_start()`] to find the start of the next line.
-/// - [`find_next_line_range()`] to find both start and end of the next line.
-/// - [`find_line_start()`] to find the start of the current line.
-/// - [`find_prev_line_start()`] to find the start of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 1; // 'o'
-///
-/// let end = line_span::find_next_line_end(text, i).unwrap();
-///
-/// assert_eq!(end, 7);
-/// assert_eq!(&text[..end], "foo\nbar");
-/// ```
-#[inline]
-pub fn find_next_line_end(text: &str, index: usize) -> Option<usize> {
-    find_next_line_start(text, index).map(|i| find_line_end(text, i))
-}
-
-/// Find the start and end (byte index) of the next line, the line after the one which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// Returns [`None`] if there is no next line.
-///
-/// ## See also
-///
-/// - [`find_next_line_start()`] to find only the start of the next line.
-/// - [`find_next_line_end()`] to find only the end of the next line.
-/// - [`find_line_range()`] to find the start and end of the current line.
-/// - [`find_prev_line_range()`] to find the start and end of the previous line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 1; // 'o'
-///
-/// let range = line_span::find_next_line_range(text, i).unwrap();
-/// assert_eq!(range, 4..7);
-///
-/// let line = &text[range];
-/// assert_eq!(line, "bar");
-/// ```
-#[inline]
-pub fn find_next_line_range(text: &str, index: usize) -> Option<Range<usize>> {
-    find_next_line_start(text, index).map(|start| start..find_line_end(text, start))
-}
-
-/// Find the start (byte index) of the previous line, the line before the one which `index` is within.
-///
-/// Returns [`None`] if there is no previous line.
-///
-/// ## See also
-///
-/// - [`find_prev_line_end()`] to find the end of the previous line.
-/// - [`find_prev_line_range()`] to find both start and end of the previous line.
-/// - [`find_line_start()`] to find the start of the current line.
-/// - [`find_next_line_start()`] to find the start of the next line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 9; // 'a'
-///
-/// let start = line_span::find_prev_line_start(text, i).unwrap();
-///
-/// assert_eq!(start, 4);
-/// assert_eq!(&text[start..], "bar\nbaz");
-/// ```
-#[inline]
-pub fn find_prev_line_start(text: &str, index: usize) -> Option<usize> {
-    find_prev_line_end(text, index).map(|i| find_line_start(text, i))
-}
-
-/// Find the end (byte index) of the previous line, the line before the one which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// Returns [`None`] if there is no previous line.
-///
-/// ## See also
-///
-/// - [`find_prev_line_start()`] to find the start of the previous line.
-/// - [`find_prev_line_range()`] to find both start and end of the previous line.
-/// - [`find_line_start()`] to find the start of the current line.
-/// - [`find_next_line_start()`] to find the start of the next line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 9; // 'a'
-///
-/// let end = line_span::find_prev_line_end(text, i).unwrap();
-///
-/// assert_eq!(end, 7);
-/// assert_eq!(&text[..end], "foo\nbar");
-/// ```
-#[inline]
-pub fn find_prev_line_end(text: &str, index: usize) -> Option<usize> {
-    text[..index].rfind('\n').map(|end| {
-        if (end > 0) && (text.as_bytes()[end - 1] == b'\r') {
+    #[inline]
+    fn find_line_end(&self, index: usize) -> usize {
+        let end: usize = self[index..]
+            .find('\n')
+            .map_or_else(|| self.len(), |i| index + i);
+        if (end > 0) && (self.as_bytes()[end - 1] == b'\r') {
             end - 1
         } else {
             end
         }
-    })
+    }
+
+    #[inline]
+    fn find_line_range(&self, index: usize) -> Range<usize> {
+        let start = self.find_line_start(index);
+        let end = self.find_line_end(index);
+        start..end
+    }
+
+    #[inline]
+    fn find_next_line_start(&self, index: usize) -> Option<usize> {
+        let i = self[index..].find('\n')?;
+        Some(index + i + 1)
+    }
+
+    #[inline]
+    fn find_next_line_end(&self, index: usize) -> Option<usize> {
+        let index = self.find_next_line_start(index)?;
+        let index = self.find_line_end(index);
+        Some(index)
+    }
+
+    #[inline]
+    fn find_next_line_range(&self, index: usize) -> Option<Range<usize>> {
+        let start = self.find_next_line_start(index)?;
+        let end = self.find_line_end(start);
+        Some(start..end)
+    }
+
+    #[inline]
+    fn find_prev_line_start(&self, index: usize) -> Option<usize> {
+        let index = self.find_prev_line_end(index)?;
+        let index = self.find_line_start(index);
+        Some(index)
+    }
+
+    #[inline]
+    fn find_prev_line_end(&self, index: usize) -> Option<usize> {
+        let mut end: usize = self[..index].rfind('\n')?;
+        if (end > 0) && (self.as_bytes()[end - 1] == b'\r') {
+            end -= 1;
+        }
+        Some(end)
+    }
+
+    #[inline]
+    fn find_prev_line_range(&self, index: usize) -> Option<Range<usize>> {
+        let end = self.find_prev_line_end(index)?;
+        let start = self.find_line_start(end);
+        Some(start..end)
+    }
 }
 
-/// Find the start and end (byte index) of the previous line, the line before the one which `index` is within.
-///
-/// Note the end is the last character, excluding `\n` and `\r\n`.
-///
-/// Returns [`None`] if there is no previous line.
-///
-/// ## See also
-///
-/// - [`find_prev_line_start()`] to find only the start of the previous line.
-/// - [`find_prev_line_end()`] to find only the end of the previous line.
-/// - [`find_line_range()`] to find the start and end of the current line.
-/// - [`find_next_line_range()`] to find the start and end of the next line.
-///
-/// # Panics
-///
-/// Panics if `index` is out of bounds.
-///
-/// # Example
-///
-/// ```
-/// let text = "foo\nbar\nbaz";
-/// let i = 9; // 'a'
-///
-/// let range = line_span::find_prev_line_range(text, i).unwrap();
-/// assert_eq!(range, 4..7);
-///
-/// let line = &text[range];
-/// assert_eq!(line, "bar");
-/// ```
+/// Use [`LineSpanExt::find_line_start()`] instead.
+#[inline]
+pub fn find_line_start(text: &str, index: usize) -> usize {
+    text.find_line_start(index)
+}
+
+/// Use [`LineSpanExt::find_line_end()`] instead.
+pub fn find_line_end(text: &str, index: usize) -> usize {
+    text.find_line_end(index)
+}
+
+/// Use [`LineSpanExt::find_line_range()`] instead.
+#[inline]
+pub fn find_line_range(text: &str, index: usize) -> Range<usize> {
+    text.find_line_range(index)
+}
+
+/// Use [`LineSpanExt::find_next_line_start()`] instead.
+#[inline]
+pub fn find_next_line_start(text: &str, index: usize) -> Option<usize> {
+    text.find_next_line_start(index)
+}
+
+/// Use [`LineSpanExt::find_next_line_end()`] instead.
+#[inline]
+pub fn find_next_line_end(text: &str, index: usize) -> Option<usize> {
+    text.find_next_line_end(index)
+}
+
+/// Use [`LineSpanExt::find_next_line_range()`] instead.
+#[inline]
+pub fn find_next_line_range(text: &str, index: usize) -> Option<Range<usize>> {
+    text.find_next_line_range(index)
+}
+
+/// Use [`LineSpanExt::find_prev_line_start()`] instead.
+#[inline]
+pub fn find_prev_line_start(text: &str, index: usize) -> Option<usize> {
+    text.find_prev_line_start(index)
+}
+
+/// Use [`LineSpanExt::find_prev_line_end()`] instead.
+#[inline]
+pub fn find_prev_line_end(text: &str, index: usize) -> Option<usize> {
+    text.find_prev_line_end(index)
+}
+
+/// Use [`LineSpanExt::find_prev_line_range()`] instead.
 #[inline]
 pub fn find_prev_line_range(text: &str, index: usize) -> Option<Range<usize>> {
-    find_prev_line_end(text, index).map(|end| find_line_start(text, end)..end)
+    text.find_prev_line_range(index)
 }
 
 /// Get the start and end (byte index) range (`Range<usize>`), where `substring`
@@ -436,7 +519,7 @@ pub fn find_prev_line_range(text: &str, index: usize) -> Option<Range<usize>> {
 ///
 /// # Example
 ///
-/// ```
+/// ```rust
 /// # use line_span::str_to_range;
 /// let string1 = "Foo Bar Baz";
 /// let string2 = "Hello World";
@@ -457,7 +540,7 @@ pub fn find_prev_line_range(text: &str, index: usize) -> Option<Range<usize>> {
 /// `substring` can be a substring of a substring of a substring of ...
 /// and so on.
 ///
-/// ```
+/// ```rust
 /// # use line_span::str_to_range;
 /// let s1 = "Foo Bar Baz";
 ///
@@ -562,7 +645,6 @@ pub fn str_to_range(string: &str, substring: &str) -> Option<Range<usize>> {
 pub fn str_to_range_unchecked(string: &str, substring: &str) -> Range<usize> {
     let start = (substring.as_ptr() as usize) - (string.as_ptr() as usize);
     let end = start + substring.len();
-
     start..end
 }
 
@@ -714,7 +796,7 @@ impl<'a> fmt::Debug for LineSpan<'a> {
     /// [`end()`]: Self::end
     /// [`ending()`]: Self::ending
     /// [`as_str()`]: Self::as_str
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt.debug_struct("LineSpan")
             .field("start", &self.start)
             .field("end", &self.end)
@@ -729,7 +811,7 @@ impl<'a> fmt::Display for LineSpan<'a> {
     ///
     /// [`as_str`]: struct.LineSpan.html#method.as_str
     #[inline]
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.as_str().fmt(fmt)
     }
 }
@@ -803,12 +885,12 @@ impl<'a> FusedIterator for LineSpanIter<'a> {}
 /// [`line_spans()`]: LineSpans::line_spans
 pub trait LineSpans {
     /// Creates a [`LineSpanIter`].
-    fn line_spans(&self) -> LineSpanIter;
+    fn line_spans(&self) -> LineSpanIter<'_>;
 }
 
 impl LineSpans for str {
     #[inline]
-    fn line_spans(&self) -> LineSpanIter {
+    fn line_spans(&self) -> LineSpanIter<'_> {
         LineSpanIter::from(self)
     }
 }
@@ -816,14 +898,14 @@ impl LineSpans for str {
 #[cfg(feature = "alloc")]
 impl LineSpans for alloc::string::String {
     #[inline]
-    fn line_spans(&self) -> LineSpanIter {
+    fn line_spans(&self) -> LineSpanIter<'_> {
         LineSpanIter::from(self.as_str())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{LineSpan, LineSpanExt};
 
     #[test]
     fn test_line_spans() {
