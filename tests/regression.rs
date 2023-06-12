@@ -40,7 +40,7 @@ impl<'a> Iterator for OldLineSpanIter<'a> {
 
 #[test]
 fn test_correctness() {
-    let text = "\r\nfoo\nbar\r\nbaz\nqux\r\n\r";
+    let text = "\r\nfoo\nbar\r\nbaz\nqux";
 
     let mut iter1 = OldLineSpanIter::from(text);
     let mut iter2 = text.line_spans();

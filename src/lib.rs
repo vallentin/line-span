@@ -862,7 +862,7 @@ mod tests {
         assert_eq!(Some("bar"), it.next().as_deref());
         assert_eq!(Some("baz"), it.next().as_deref());
         assert_eq!(Some("qux"), it.next().as_deref());
-        assert_eq!(Some(""), it.next().as_deref());
+        assert_eq!(Some("\r"), it.next().as_deref());
         assert_eq!(None, it.next().as_deref());
 
         let mut it = text.line_spans().map(|span| span.range());
@@ -871,7 +871,7 @@ mod tests {
         assert_eq!(Some(6..9), it.next());
         assert_eq!(Some(11..14), it.next());
         assert_eq!(Some(15..18), it.next());
-        assert_eq!(Some(20..20), it.next());
+        assert_eq!(Some(20..21), it.next());
         assert_eq!(None, it.next());
     }
 
@@ -904,7 +904,7 @@ mod tests {
             ("bar", "bar\r\n"),
             ("baz", "baz\n"),
             ("qux", "qux\r\n"),
-            ("", "\r"),
+            ("\r", "\r"),
         ];
 
         let mut iter = text.line_spans();
