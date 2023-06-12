@@ -10,7 +10,7 @@ license = "MIT"
 repository = "https://github.com/vallentin/line-span"
 documentation = "https://docs.rs/line-span"
 readme = "README.md"
-exclude = ["/benches/", "/tests/"]
+exclude = ["/tests/", "bench-lines.rs"]
 
 [features]
 default = ["alloc"]
