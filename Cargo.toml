@@ -1,6 +1,6 @@
 [package]
 name = "line-span"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Christian Vallentin"]
 edition = "2018"
 description = "Find line ranges and jump between next and previous lines"
@@ -12,12 +12,8 @@ documentation = "https://docs.rs/line-span"
 readme = "README.md"
 exclude = [".travis.yml", "/benches/", "/tests/"]
 
-[badges]
-travis-ci = { repository = "vallentin/line-span" }
-
-[dependencies]
-
 [features]
 default = ["alloc"]
-
 alloc = []
+
+[dependencies]

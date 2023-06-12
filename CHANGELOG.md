@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.?.? (20??-??-??)
+## Version 0.1.4 (2023-06-12)
 
 - Implemented `trait LineSpanExt`
 - Implemented `ending_str()` and `ending_range()` for `LineSpan`
