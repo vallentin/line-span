@@ -10,7 +10,7 @@ license = "MIT"
 repository = "https://github.com/vallentin/line-span"
 documentation = "https://docs.rs/line-span"
 readme = "README.md"
-exclude = [".travis.yml", "/benches/", "/tests/"]
+exclude = ["/benches/", "/tests/"]
 
 [features]
 default = ["alloc"]
