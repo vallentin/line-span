@@ -872,7 +872,7 @@ impl<'a> Iterator for LineSpanIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(line) = self.iter.next() {
             let Range { start, end } = str_to_range_unchecked(self.text, line);
-            let ending = find_next_line_start(self.text, end).unwrap_or_else(|| self.text.len());
+            let ending = find_next_line_start(self.text, end).unwrap_or(self.text.len());
 
             Some(LineSpan {
                 text: self.text,
